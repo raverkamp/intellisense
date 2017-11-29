@@ -1,2 +1,5 @@
 /pyenv/*
 /init.sh
+/__pycache__/*
+/#requirements.txt#
+/.#requirements.txt

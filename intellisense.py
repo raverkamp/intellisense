@@ -197,19 +197,61 @@ class OracleCompleter(Completer):
         
         return
 
-def connect():
-    constr = os.environ["sys_connect"]
-    con = cx_Oracle.connect(constr, mode=cx_Oracle.SYSDBA)
+def print_table(rows):
+    rows = list(rows)
+    if len(rows) ==0:
+        print("-- nix --")
+        return
+    ncols = len(rows[0])
+    widths = [1] * ncols
+    for row in rows:
+        i = 0
+        for c in row:
+            w = len(str(c))
+            if w > widths[i]:
+                widths[i] = w
+            i = i+1
+    for row in rows:
+        sys.stdout.write("|")
+        i=0
+        for c in row:
+            sys.stdout.write(str(c).ljust(widths[i]) +"|")
+            i = i+1
+        sys.stdout.write("\n")
+            
+
+def connect(constr):
+    if constr.upper().startswith("SYS/"):
+        con = cx_Oracle.connect(constr, mode=cx_Oracle.SYSDBA)
+    else:
+        con = cx_Oracle.connect(constr)
     return con
+
+def exec_query(con, sql):
+    cur = con.cursor()
+    try:
+        cur.execute(sql)
+        a = cur.fetchall()
+        print_table(a)
+    finally:
+        cur.close()
+
     
 def main():
-    con = connect()
+    constr = sys.argv[1]
+    con = connect(constr)
     dbdata = DbData()
     dbdata.init(con)
-    con.close()
     ora_completer = OracleCompleter(dbdata)
-    text = prompt('> ', completer=ora_completer, multiline=True)
-    print(text)
+    while True:
+        text = prompt('> ', completer=ora_completer, multiline=True)
+        if text == "":
+            break
+        try :
+            exec_query(con, text)
+        except Exception as e:
+            print(e)
+
 
 if __name__ == '__main__':
     main()
