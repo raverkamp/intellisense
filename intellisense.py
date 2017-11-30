@@ -128,7 +128,7 @@ class DbData(object):
             if tab[1].startswith(tabstart):
                 res.append(tab[1])
         for (sy, _,  _) in self.synonyms:
-            if sy.startswith(tabstart):
+            if sy.startswith(tabstart) and sy not in res:
                 res.append(sy)
         return sorted(res)
 
